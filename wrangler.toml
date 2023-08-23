@@ -1,0 +1,28 @@
+# Top-level configuration
+account_id = "f9a5d29335f63217bde8c50779556f00"
+name = "reviews"
+main = "src/index.js"
+compatibility_date = "2023-05-05"
+
+# workers_dev = false
+# route = { pattern = "example.org/*", zone_name = "example.org" }
+
+kv_namespaces = [
+  { binding = "reviews", id = "961dfdc099174f31b268a284389b7897" }
+]
+
+r2_buckets = [
+  { binding = "REVIEWS_BUCKET", bucket_name = "reviews-bucket", preview_bucket_name = "" }
+]
+
+[vars]
+# Requires following secrets:
+# - GITHUB_TOKEN (GitHub personal access token with repo scope to trigger repository dispatch events)
+
+# [env.staging]
+# name = "my-worker-staging"
+# route = { pattern = "staging.example.org/*", zone_name = "example.org" }
+
+# kv_namespaces = [
+#  { binding = "<MY_NAMESPACE>", id = "<STAGING_KV_ID>" }
+#]
