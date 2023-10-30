@@ -56,9 +56,15 @@ async function handleRequest(request) {
   };
 
   const createReviewSitemap = async () => {
-    const resp = await fetch(`https://${ref}--${repo}--${owner}.hlx.page/query-index.json`, request);
-    const json = await resp.json();
-    const indexedPages = json.data;
+    const indexedPages = [];
+    try {
+      const resp = await fetch(`https://${ref}--${repo}--${owner}.hlx.page/query-index.json`, request);
+      const json = await resp.json();
+      indexedPages.push(...json.data);
+    } catch {
+      console.log('no index');
+    }
+
     pages.push(...indexedPages.map((e) => e.path));
     const urls = [...new Set(pages.map((path) => `https://${url.hostname}${path}`))];
     console.log(urls);
