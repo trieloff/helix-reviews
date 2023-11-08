@@ -7,6 +7,37 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
   const url = new URL(request.url);
 
+  const createMetaTag = (name, value) => {
+    return `<meta name="${name}" content="${value}">\n`;
+}
+
+  const rewriteMeta = async (data) => {
+    if (data.status !== 200) return data.body;
+    const metadataURL = `https://${ref}--${repo}--${owner}.hlx.${state}/.snapshots/${reviewId}/metadata.json`;
+    const metaresp = await fetch(metadataURL, request);
+    const metadata = await metaresp.json();
+    const html = await data.text();
+    const headSplits = html.split('</head>');
+    const rules = metadata.data;
+    rules.forEach((rule) => {
+      const pattern = rule.URL.replaceAll('**', '.*');
+      const regex = new RegExp(pattern);
+      if (regex.test(url.pathname)) {
+        const metanames = Object.keys(rule);
+        metanames.forEach((metaname) => {
+          const name = metaname.toLowerCase();
+          if (name !== 'url' && rule[metaname]) {
+            headSplits[0] = headSplits[0].replace(`<meta name="${name}"`, `<meta name="${name}-rewritten"`);
+            headSplits[0] = headSplits[0] + createMetaTag(name, rule[metaname]);
+          }
+        })
+
+      }
+    })
+    const modBody = headSplits.join('</head>');
+    return modBody;
+  }
+
   const createSnapshotRedirect = (pathname) => {
     const location = `/${pathname.split('/').slice(3).join('/')}`;
     return new Response('Redirect', {
@@ -96,7 +127,12 @@ async function handleRequest(request) {
   req.headers.set('x-forwarded-host', req.headers.get('host'));
 
   const data = await fetch(url.toString(), req);
-  const response = new Response(data.body, data);
+  let body = data.body;
+  if (pages.includes('/metadata.json') && !url.pathname.split('/').pop().includes('.')) {
+    body = await rewriteMeta(data);
+  }
+  const response = new Response(body, data);
+  
   response.headers.set('content-security-policy', '');
   response.headers.set('x-origin-url', url.toString());
   response.headers.set('x-review-pages', review.pages);
