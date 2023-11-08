@@ -128,7 +128,7 @@ async function handleRequest(request) {
 
   const data = await fetch(url.toString(), req);
   let body = data.body;
-  if (pages.includes('/metadata.json')) {
+  if (pages.includes('/metadata.json') && !url.pathname.includes('.')) {
     body = await rewriteMeta(data);
   }
   const response = new Response(body, data);
