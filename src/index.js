@@ -58,27 +58,29 @@ async function handleRequest(request) {
   const createReviewSitemap = async () => {
     const indexedPages = [];
     try {
-      const resp = await fetch(`https://${ref}--${repo}--${owner}.hlx.page/query-index.json`, request);
-      const json = await resp.json();
-      indexedPages.push(...json.data);
+      const sitemapResp = await fetch(`https://${ref}--${repo}--${owner}.hlx.page/sitemap.xml`, request);
+      const xml = await sitemapResp.text();
+      const regexp = /<loc\>(.*?)\<\/loc>/g;
+      const sitemapLocs = [...xml.matchAll(regexp)].map((e) => new URL(e[1]).pathname);
+      indexedPages.push(...sitemapLocs);
     } catch {
-      console.log('no index');
+      console.log("no index");
     }
-
-    pages.push(...indexedPages.map((e) => e.path));
+    pages.push(...indexedPages);
     const urls = [...new Set(pages.map((path) => `https://${url.hostname}${path}`))];
     console.log(urls);
-
     const sitemap = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-    ${urls.map((e) => '<url>' + e + '</url>').join('\n')}
-    </urlset>`;
-
+  ${urls.map((e) => "<url>" + e + "</url>").join("\n")}
+  </urlset>`;
     return new Response(sitemap, {
       headers: {
-        "content-type": "text/xml;charset=UTF-8",
-      },
+        "content-type": "text/xml;charset=UTF-8"
+      }
     });
-  };
+  }
+
+  if (url.pathname === "/sitemap.xml" || url.pathname === "/sitemap-origin.xml")
+    return await createReviewSitemap();
 
   if (url.pathname === '/sitemap.xml') return await createReviewSitemap();
   if (url.pathname === '/robots.txt') return createRobots();
