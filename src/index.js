@@ -70,7 +70,7 @@ async function handleRequest(request) {
     const urls = [...new Set(pages.map((path) => `https://${url.hostname}${path}`))];
     console.log(urls);
     const sitemap = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
-  ${urls.map((e) => "<url>" + e + "</url>").join("\n")}
+  ${urls.map((e) => "<url><loc>" + e + "</loc></url>").join("\n")}
   </urlset>`;
     return new Response(sitemap, {
       headers: {
